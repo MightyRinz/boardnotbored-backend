@@ -5,21 +5,31 @@ import { PrismaService } from '../prisma/prisma.service'
 export class BoardgameService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(page = 1, limit = 20, sort = 'rating') {
+  async findAll(
+    page = 1,
+    limit = 20,
+    sort = 'rating',
+    q?: string,
+  ) {
     let orderBy: any = { bayesAverage: 'desc' }
     let where: any = {}
 
+    //  search
+    if (q) {
+      where.name = {
+        contains: q,
+        mode: 'insensitive',
+      }
+    }
+
+    //  sort
     if (sort === 'users') {
       orderBy = { usersRated: 'desc' }
     }
 
     if (sort === 'rank') {
       orderBy = { rank: 'asc' }
-      where = {
-        rank: {
-          gt: 0,
-        },
-      }
+      where.rank = { gt: 0 }
     }
 
     const [data, total] = await Promise.all([
