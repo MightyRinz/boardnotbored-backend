@@ -7,6 +7,7 @@ export class BoardgameService {
 
   findAll(page = 1, limit = 20, sort = 'rating') {
     let orderBy: any = { bayesAverage: 'desc' }
+    let where: any = {}
 
     if (sort === 'users') {
       orderBy = { usersRated: 'desc' }
@@ -14,12 +15,18 @@ export class BoardgameService {
 
     if (sort === 'rank') {
       orderBy = { rank: 'asc' }
+      where = {
+        rank: {
+          gt: 0,
+        },
+      }
     }
 
     return this.prisma.boardGame.findMany({
       skip: (page - 1) * limit,
       take: limit,
       orderBy,
+      where,
     })
   }
 
