@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service'
 export class BoardgameService {
   constructor(private prisma: PrismaService) {}
 
-  findAll(page = 1, limit = 20, sort = 'rating') {
+  async findAll(page = 1, limit = 20, sort = 'rating') {
     let orderBy: any = { bayesAverage: 'desc' }
     let where: any = {}
 
@@ -22,12 +22,22 @@ export class BoardgameService {
       }
     }
 
-    return this.prisma.boardGame.findMany({
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy,
-      where,
-    })
+    const [data, total] = await Promise.all([
+      this.prisma.boardGame.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy,
+        where,
+      }),
+      this.prisma.boardGame.count({ where }),
+    ])
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    }
   }
 
   findById(id: number) {
