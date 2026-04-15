@@ -11,12 +11,14 @@ export class BoardgameController {
     @Query('limit') limit = '20',
     @Query('sort') sort = 'rating',
     @Query('q') q?: string,
+    @Query('category') category?: string,
   ) {
     return this.service.findAll(
       Number(page),
       Number(limit),
       sort,
       q,
+      category,
     )
   }
 
