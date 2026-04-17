@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-//  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model BoardGame {
@@ -27,5 +27,29 @@ model BoardGame {
   strategyRank  Int?
   partyRank     Int?
   familyRank    Int?
+
+  interactions UserGameInteraction[]
 }
 
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  interactions UserGameInteraction[]
+}
+
+model UserGameInteraction {
+  id     Int @id @default(autoincrement())
+  userId Int
+  gameId Int
+
+  rating Int?      // 1-5
+  played Boolean   @default(true)
+
+  user User @relation(fields: [userId], references: [id])
+  game BoardGame @relation(fields: [gameId], references: [id])
+
+  @@unique([userId, gameId])
+}
