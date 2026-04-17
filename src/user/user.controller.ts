@@ -3,7 +3,7 @@ import { UserService } from './user.service'
 
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
 
   @Post()
   createUser(@Body() body) {
@@ -22,5 +22,10 @@ export class UserController {
   @Get(':id/interactions')
   getInteractions(@Param('id') id: string) {
     return this.userService.getUserInteractions(Number(id))
+  }
+
+  @Get(':id/recommend')
+  recommend(@Param('id') id: string) {
+    return this.userService.recommend(Number(id))
   }
 }
