@@ -41,37 +41,60 @@ export class UserService {
     }
 
     async recommend(userId: number) {
-        // 1. หาเกมที่ user เล่นแล้ว
+        // 1. เกมที่ user เล่น
         const myGames = await this.prisma.userGameInteraction.findMany({
             where: { userId },
-            select: { gameId: true },
         })
 
         const myGameIds = myGames.map(g => g.gameId)
 
-        // 2. หา user อื่นที่เล่นเกมเดียวกัน
-        const similarUsers = await this.prisma.userGameInteraction.findMany({
+        // 2. หา interactions ของ user อื่นที่มี overlap
+        const others = await this.prisma.userGameInteraction.findMany({
             where: {
                 gameId: { in: myGameIds },
                 userId: { not: userId },
             },
-            select: { userId: true },
         })
 
-        const similarUserIds = [...new Set(similarUsers.map(u => u.userId))]
+        // 3. นับ similarity (userId -> score)
+        const similarityMap: Record<number, number> = {}
 
-        // 3. หาเกมที่ user อื่นเล่น แต่เราไม่เคยเล่น
-        const recommendations = await this.prisma.userGameInteraction.findMany({
+        for (const o of others) {
+            similarityMap[o.userId] = (similarityMap[o.userId] || 0) + 1
+        }
+
+        // 4. หา candidate games
+        const candidates = await this.prisma.userGameInteraction.findMany({
             where: {
-                userId: { in: similarUserIds },
+                userId: { in: Object.keys(similarityMap).map(Number) },
                 gameId: { notIn: myGameIds },
             },
             include: {
                 game: true,
             },
-            take: 20,
         })
 
-        return recommendations
+        // 5. score เกม (weighted)
+        const scoreMap: Record<number, { game: any; score: number }> = {}
+
+        for (const c of candidates) {
+            const sim = similarityMap[c.userId] || 0
+            const rating = c.rating || 3
+
+            const weight = sim * rating
+
+            if (!scoreMap[c.gameId]) {
+                scoreMap[c.gameId] = { game: c.game, score: 0 }
+            }
+
+            scoreMap[c.gameId].score += weight
+        }
+
+        // 6. sort
+        const result = Object.values(scoreMap)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 20)
+
+        return result
     }
 }
