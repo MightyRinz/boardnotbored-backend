@@ -46,6 +46,20 @@ export class UserService {
             where: { userId },
         })
 
+        // ถ้า user ใหม่ (ไม่มี data)
+        if (myGames.length === 0) {
+            return this.prisma.boardGame.findMany({
+                where: {
+                    rank: { gt: 0 },   // เอาเฉพาะเกมที่มีอันดับ
+                },
+                orderBy: [
+                    { bayesAverage: 'desc' },
+                    { usersRated: 'desc' },
+                ],
+                take: 20,
+            })
+        }
+
         const myGameIds = myGames.map(g => g.gameId)
 
         // 2. หา interactions ของ user อื่นที่มี overlap
