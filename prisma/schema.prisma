@@ -24,11 +24,12 @@ model BoardGame {
   usersRated    Int?
   isExpansion   Boolean
 
-  strategyRank  Int?
-  partyRank     Int?
-  familyRank    Int?
+  strategyRank Int?
+  partyRank    Int?
+  familyRank   Int?
 
   interactions UserGameInteraction[]
+  shopGames    ShopGame[]
 }
 
 model User {
@@ -45,11 +46,31 @@ model UserGameInteraction {
   userId Int
   gameId Int
 
-  rating Int?      // 1-5
-  played Boolean   @default(true)
+  rating Int? // 1-5
+  played Boolean @default(true)
 
-  user User @relation(fields: [userId], references: [id])
+  user User      @relation(fields: [userId], references: [id])
   game BoardGame @relation(fields: [gameId], references: [id])
 
   @@unique([userId, gameId])
+}
+
+model Shop {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+
+  games ShopGame[]
+}
+
+model ShopGame {
+  id     Int @id @default(autoincrement())
+  shopId Int
+  gameId Int
+
+  shop Shop      @relation(fields: [shopId], references: [id])
+  game BoardGame @relation(fields: [gameId], references: [id])
+
+  @@unique([shopId, gameId])
 }
