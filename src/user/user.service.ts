@@ -41,28 +41,28 @@ export class UserService {
     }
 
     async recommend(userId: number) {
+        const LIMIT = 20
+
         // 1. เกมที่ user เล่น
         const myGames = await this.prisma.userGameInteraction.findMany({
             where: { userId },
         })
 
-        // ถ้า user ใหม่ (ไม่มี data)
+        //  fallback (cold start)
         if (myGames.length === 0) {
             return this.prisma.boardGame.findMany({
-                where: {
-                    rank: { gt: 0 },   // เอาเฉพาะเกมที่มีอันดับ
-                },
+                where: { rank: { gt: 0 } },
                 orderBy: [
                     { bayesAverage: 'desc' },
                     { usersRated: 'desc' },
                 ],
-                take: 20,
+                take: LIMIT,
             })
         }
 
         const myGameIds = myGames.map(g => g.gameId)
 
-        // 2. หา interactions ของ user อื่นที่มี overlap
+        // 2. หา users ที่ overlap
         const others = await this.prisma.userGameInteraction.findMany({
             where: {
                 gameId: { in: myGameIds },
@@ -70,17 +70,34 @@ export class UserService {
             },
         })
 
-        // 3. นับ similarity (userId -> score)
+        // 3. similarity (normalize ด้วยจำนวนเกม)
         const similarityMap: Record<number, number> = {}
 
         for (const o of others) {
             similarityMap[o.userId] = (similarityMap[o.userId] || 0) + 1
         }
 
+        // normalize
+        const myGameCount = myGameIds.length
+        Object.keys(similarityMap).forEach(uid => {
+            similarityMap[Number(uid)] /= myGameCount
+        })
+
+        const similarUserIds = Object.keys(similarityMap).map(Number)
+
+        //  fallback ถ้าไม่มี similar user
+        if (similarUserIds.length === 0) {
+            return this.prisma.boardGame.findMany({
+                where: { rank: { gt: 0 } },
+                orderBy: { bayesAverage: 'desc' },
+                take: LIMIT,
+            })
+        }
+
         // 4. หา candidate games
         const candidates = await this.prisma.userGameInteraction.findMany({
             where: {
-                userId: { in: Object.keys(similarityMap).map(Number) },
+                userId: { in: similarUserIds },
                 gameId: { notIn: myGameIds },
             },
             include: {
@@ -88,12 +105,12 @@ export class UserService {
             },
         })
 
-        // 5. score เกม (weighted)
+        // 5. weighted score (normalize rating)
         const scoreMap: Record<number, { game: any; score: number }> = {}
 
         for (const c of candidates) {
             const sim = similarityMap[c.userId] || 0
-            const rating = c.rating || 3
+            const rating = (c.rating || 3) / 5   // normalize 0–1
 
             const weight = sim * rating
 
@@ -104,10 +121,14 @@ export class UserService {
             scoreMap[c.gameId].score += weight
         }
 
-        // 6. sort
+        // 6. sort + clean response
         const result = Object.values(scoreMap)
             .sort((a, b) => b.score - a.score)
-            .slice(0, 20)
+            .slice(0, LIMIT)
+            .map(r => ({
+                ...r.game,
+                score: Number(r.score.toFixed(3)),
+            }))
 
         return result
     }
