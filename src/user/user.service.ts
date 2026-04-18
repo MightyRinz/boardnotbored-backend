@@ -132,4 +132,20 @@ export class UserService {
 
         return result
     }
+
+    async recommendForShop(userId: number, shopId: number) {
+        const recommendations = await this.recommend(userId)
+
+        const shopGames = await this.prisma.shopGame.findMany({
+            where: { shopId },
+            select: { gameId: true },
+        })
+
+        const shopGameIds = shopGames.map(g => g.gameId)
+
+        return recommendations.filter(r =>
+            shopGameIds.includes(r.id)
+        )
+    }
+
 }

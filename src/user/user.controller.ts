@@ -28,4 +28,15 @@ export class UserController {
   recommend(@Param('id') id: string) {
     return this.userService.recommend(Number(id))
   }
+
+  @Get(':id/recommend/:shopId')
+  recommendForShop(
+    @Param('id') id: string,
+    @Param('shopId') shopId: string,
+  ) {
+    return this.userService.recommendForShop(
+      Number(id),
+      Number(shopId),
+    )
+  }
 }
