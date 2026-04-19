@@ -160,10 +160,12 @@ export class UserService {
         }
 
         // fallback: แสดงเกมในร้านแทน
-        return shopGames
-            .map(g => g.game)
-            .sort((a, b) => (b.bayesAverage ?? 0) - (a.bayesAverage ?? 0))
-            .slice(0, LIMIT)
+        return [
+            ...filtered,
+            ...shopGames
+                .map(g => g.game)
+                .filter(g => !filtered.some(f => f.id === g.id))
+        ].slice(0, LIMIT)
     }
 
 }
