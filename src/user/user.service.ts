@@ -134,18 +134,36 @@ export class UserService {
     }
 
     async recommendForShop(userId: number, shopId: number) {
+        const LIMIT = 20
+
+        // 1. เอา recommend ปกติ
         const recommendations = await this.recommend(userId)
 
+        // 2. เอาเกมในร้าน
         const shopGames = await this.prisma.shopGame.findMany({
             where: { shopId },
-            select: { gameId: true },
+            include: {
+                game: true,
+            },
         })
 
         const shopGameIds = shopGames.map(g => g.gameId)
 
-        return recommendations.filter(r =>
-            shopGameIds.includes(r.id)
+        // 3. filter
+        const filtered = recommendations.filter(r =>
+            shopGameIds.includes(r.id),
         )
+
+        // ถ้ามี → ใช้เลย
+        if (filtered.length > 0) {
+            return filtered
+        }
+
+        // fallback: แสดงเกมในร้านแทน
+        return shopGames
+            .map(g => g.game)
+            .sort((a, b) => (b.bayesAverage ?? 0) - (a.bayesAverage ?? 0))
+            .slice(0, LIMIT)
     }
 
 }
