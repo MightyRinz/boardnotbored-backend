@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
@@ -92,6 +92,15 @@ export class ShopService {
 
     // ลบโต๊ะ
     async deleteTable(tableId: number) {
+        //  เช็คว่ามี booking ไหม
+        const hasBooking = await this.prisma.booking.findFirst({
+            where: { tableId },
+        })
+        // ถ้ามี ห้ามลบ
+        if (hasBooking) {
+            throw new BadRequestException('Table has bookings')
+        }
+        // ถ้าไม่มี ลบได้
         return this.prisma.table.delete({
             where: { id: tableId },
         })
