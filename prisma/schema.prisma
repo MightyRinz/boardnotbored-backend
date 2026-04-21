@@ -39,6 +39,7 @@ model User {
   createdAt DateTime @default(now())
 
   interactions UserGameInteraction[]
+  bookings     Booking[]
 }
 
 model UserGameInteraction {
@@ -61,7 +62,8 @@ model Shop {
   address   String?
   createdAt DateTime @default(now())
 
-  games ShopGame[]
+  games  ShopGame[]
+  tables Table[]
 }
 
 model ShopGame {
@@ -73,4 +75,43 @@ model ShopGame {
   game BoardGame @relation(fields: [gameId], references: [id])
 
   @@unique([shopId, gameId])
+}
+
+model Table {
+  id       Int @id @default(autoincrement())
+  shopId   Int
+  number   Int
+  capacity Int
+
+  shop     Shop      @relation(fields: [shopId], references: [id])
+  bookings Booking[]
+
+  @@unique([shopId, number])
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  tableId   Int
+  startTime DateTime
+  endTime   DateTime
+  status    String   @default("confirmed")
+  createdAt DateTime @default(now())
+
+  isOpenParty Boolean @default(false) // if true, anyone can join until maxPlayers is reached
+  maxPlayers  Int? 
+
+  user  User  @relation(fields: [userId], references: [id])
+  table Table @relation(fields: [tableId], references: [id])
+}
+
+model BookingParticipant {
+  id        Int @id @default(autoincrement())
+  bookingId Int
+  userId    Int
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([bookingId, userId])
 }
