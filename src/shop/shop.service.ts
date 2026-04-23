@@ -105,4 +105,21 @@ export class ShopService {
             where: { id: tableId },
         })
     }
+
+    async getAllShops() {
+        return this.prisma.shop.findMany({
+            select: {
+                id: true,
+                name: true,
+                address: true,
+                openingTime: true,
+                closingTime: true,
+                _count: {
+                    select: {
+                        tables: true,
+                    },
+                },
+            },
+        })
+    }
 }
