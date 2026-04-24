@@ -1,6 +1,21 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 
+function isOpenNow(open?: string, close?: string) {
+    if (!open || !close) return false
+
+    const now = new Date()
+    const current = now.getHours() * 60 + now.getMinutes()
+
+    const [oh, om] = open.split(':').map(Number)
+    const [ch, cm] = close.split(':').map(Number)
+
+    const openMin = oh * 60 + om
+    const closeMin = ch * 60 + cm
+
+    return current >= openMin && current <= closeMin
+}
+
 @Injectable()
 export class ShopService {
     constructor(private prisma: PrismaService) { }
@@ -107,7 +122,7 @@ export class ShopService {
     }
 
     async getAllShops() {
-        return this.prisma.shop.findMany({
+        const shops = await this.prisma.shop.findMany({
             select: {
                 id: true,
                 name: true,
@@ -121,5 +136,10 @@ export class ShopService {
                 },
             },
         })
+
+        return shops.map(shop => ({
+            ...shop,
+            isOpen: isOpenNow(shop.openingTime, shop.closingTime),
+        }))
     }
 }
