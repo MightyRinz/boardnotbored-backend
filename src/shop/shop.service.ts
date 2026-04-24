@@ -25,9 +25,14 @@ function isOpenNow(open?: string, close?: string) {
 export class ShopService {
     constructor(private prisma: PrismaService) { }
 
-    createShop(name: string, address?: string) {
+    createShop(
+        name: string,
+        address?: string,
+        openingTime?: string,
+        closingTime?: string,
+    ) {
         return this.prisma.shop.create({
-            data: { name, address },
+            data: { name, address, openingTime, closingTime },
         })
     }
 
@@ -114,7 +119,10 @@ export class ShopService {
     async deleteTable(tableId: number) {
         //  เช็คว่ามี booking ไหม
         const hasBooking = await this.prisma.booking.findFirst({
-            where: { tableId },
+            where: {
+                tableId,
+                status: 'confirmed',
+            },
         })
         // ถ้ามี ห้ามลบ
         if (hasBooking) {
