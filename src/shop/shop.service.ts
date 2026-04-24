@@ -13,7 +13,12 @@ function isOpenNow(open?: string, close?: string) {
     const openMin = oh * 60 + om
     const closeMin = ch * 60 + cm
 
-    return current >= openMin && current <= closeMin
+    // กรณีปกติ (เช่น 10:00 - 22:00)
+    if (openMin <= closeMin) {
+        return current >= openMin && current <= closeMin
+    }
+    // กรณีข้ามวัน (เช่น 18:00 - 02:00)
+    return current >= openMin || current <= closeMin
 }
 
 @Injectable()
