@@ -142,6 +142,7 @@ export class ShopService {
                 address: true,
                 openingTime: true,
                 closingTime: true,
+                isClosedToday: true,
                 _count: {
                     select: {
                         tables: true,
@@ -154,7 +155,10 @@ export class ShopService {
             ...shop,
             isOpen:
                 !shop.isClosedToday &&
-                isOpenNow(shop.openingTime, shop.closingTime),
+                isOpenNow(
+                    shop.openingTime ?? undefined,
+                    shop.closingTime ?? undefined,
+                ),
         }))
     }
     async setClosedToday(shopId: number, closed: boolean) {
