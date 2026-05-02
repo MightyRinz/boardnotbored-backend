@@ -152,7 +152,15 @@ export class ShopService {
 
         return shops.map(shop => ({
             ...shop,
-            isOpen: isOpenNow(shop.openingTime, shop.closingTime),
+            isOpen:
+                !shop.isClosedToday &&
+                isOpenNow(shop.openingTime, shop.closingTime),
         }))
+    }
+    async setClosedToday(shopId: number, closed: boolean) {
+        return this.prisma.shop.update({
+            where: { id: shopId },
+            data: { isClosedToday: closed },
+        })
     }
 }

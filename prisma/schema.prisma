@@ -64,6 +64,7 @@ model Shop {
   createdAt   DateTime @default(now())
   openingTime String?
   closingTime String?
+  isClosedToday Boolean @default(false)
 
   games  ShopGame[]
   tables Table[]

@@ -72,4 +72,11 @@ export class ShopController {
     deleteTable(@Param('tableId') tableId: string) {
         return this.shopService.deleteTable(Number(tableId))
     }
+    @Patch(':id/closed')
+    setClosed(@Param('id') id: string, @Body() body) {
+        return this.shopService.setClosedToday(
+            Number(id),
+            body.closed,
+        )
+    }
 }
