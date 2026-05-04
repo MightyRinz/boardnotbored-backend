@@ -1,9 +1,14 @@
 import { Controller, Post, Body, Get, Param, Query, Patch, Delete } from '@nestjs/common'
 import { ShopService } from './shop.service'
 
-@Controller('shop')
+@Controller('shops')
 export class ShopController {
     constructor(private shopService: ShopService) { }
+
+    @Get()
+    getAll() {
+        return this.shopService.getAllShops()
+    }
 
     @Post()
     create(@Body() body) {
