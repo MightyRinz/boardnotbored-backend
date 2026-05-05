@@ -12,7 +12,12 @@ export class ShopController {
 
     @Post()
     create(@Body() body) {
-        return this.shopService.createShop(body.name, body.address)
+        return this.shopService.createShop(
+            body.name,
+            body.address,
+            body.openingTime,
+            body.closingTime,
+        )
     }
 
     @Post('add-game')
