@@ -21,6 +21,14 @@ export class ShopController {
         )
     }
 
+    @Patch(':id')
+    updateShop(
+        @Param('id') id: string,
+        @Body() body,
+    ) {
+        return this.shopService.updateShop(Number(id), body)
+    }
+
     @Post('add-game')
     addGame(@Body() body) {
         return this.shopService.addGameToShop(
@@ -90,4 +98,5 @@ export class ShopController {
             body.closed,
         )
     }
+
 }

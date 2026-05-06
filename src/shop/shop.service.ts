@@ -37,6 +37,13 @@ export class ShopService {
         })
     }
 
+    async updateShop(shopId: number, data: any) {
+        return this.prisma.shop.update({
+            where: { id: shopId },
+            data,
+        })
+    }
+
     addGameToShop(shopId: number, gameId: number) {
         return this.prisma.shopGame.create({
             data: { shopId, gameId },
@@ -144,6 +151,7 @@ export class ShopService {
                 openingTime: true,
                 closingTime: true,
                 isClosedToday: true,
+                imageUrl: true,
                 _count: {
                     select: {
                         tables: true,
