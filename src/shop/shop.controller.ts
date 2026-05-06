@@ -17,6 +17,7 @@ export class ShopController {
             body.address,
             body.openingTime,
             body.closingTime,
+            body.imageUrl,
         )
     }
 

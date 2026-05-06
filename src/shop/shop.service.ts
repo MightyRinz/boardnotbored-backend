@@ -30,9 +30,10 @@ export class ShopService {
         address?: string,
         openingTime?: string,
         closingTime?: string,
+        imageUrl?: string,
     ) {
         return this.prisma.shop.create({
-            data: { name, address, openingTime, closingTime },
+            data: { name, address, openingTime, closingTime, imageUrl },
         })
     }
 
